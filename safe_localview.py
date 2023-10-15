@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Safe Localview",
     "author": "todashuta",
-    "version": (0, 0, 1),
+    "version": (0, 0, 2),
     "blender": (3, 6, 0),
     "location": "-",
     "description": "-",
@@ -60,6 +60,11 @@ class SafeLocalviewOperator(bpy.types.Operator):
         return bpy.ops.view3d.localview(frame_selected=frame_selected)
 
 
+def auto_rebind(self, context):
+    unregister_keymaps()
+    register_keymaps()
+
+
 class SafeLocalviewPreferences(bpy.types.AddonPreferences):
     bl_idname = __name__
 
@@ -68,17 +73,22 @@ class SafeLocalviewPreferences(bpy.types.AddonPreferences):
             description="Move the view to frame the selected objects",
             default=True)
 
+    use_shortcut: bpy.props.BoolProperty(
+            name="Use Default Shortcut",
+            default=True,
+            update=auto_rebind)
+
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "frame_selected")
+        layout.prop(self, "use_shortcut")
 
 
 addon_keymaps = []
-
-
-def register():
-    bpy.utils.register_class(SafeLocalviewPreferences)
-    bpy.utils.register_class(SafeLocalviewOperator)
+def register_keymaps():
+    pref = bpy.context.preferences.addons[__name__].preferences
+    if not pref.use_shortcut:
+        return
 
     kc = bpy.context.window_manager.keyconfigs.addon
     if not kc:
@@ -92,14 +102,30 @@ def register():
     kmi = km.keymap_items.new(SafeLocalviewOperator.bl_idname, "NUMPAD_SLASH", "PRESS")
     addon_keymaps.append((km, kmi))
 
-
-def unregister():
+def unregister_keymaps():
     for km,kmi in addon_keymaps:
         km.keymap_items.remove(kmi)
     addon_keymaps.clear()
 
-    bpy.utils.unregister_class(SafeLocalviewOperator)
-    bpy.utils.unregister_class(SafeLocalviewPreferences)
+
+classes = (
+        SafeLocalviewPreferences,
+        SafeLocalviewOperator,
+)
+
+
+def register():
+    for cls in classes:
+        bpy.utils.register_class(cls)
+
+    register_keymaps()
+
+
+def unregister():
+    unregister_keymaps()
+
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
 
 
 if __name__ == "__main__":
