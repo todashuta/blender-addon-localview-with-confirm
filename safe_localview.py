@@ -20,8 +20,8 @@
 bl_info = {
     "name": "Safe Localview",
     "author": "todashuta",
-    "version": (0, 0, 3),
-    "blender": (3, 6, 0),
+    "version": (0, 0, 4),
+    "blender": (3, 3, 0),
     "location": "-",
     "description": "-",
     "warning": "",
@@ -39,28 +39,31 @@ def get_addon_prefs():
     return addon_prefs
 
 
+shading_types = {
+        "WIREFRAME": "Wireframe",
+        "SOLID": "Solid",
+}
+
+
 class SafeLocalviewOperator(bpy.types.Operator):
     bl_idname = "view3d.safe_localview"
     bl_label = "Safe Localview"
-
-    #frame_selected: bpy.props.BoolProperty(
-    #        name="Frame Selected",
-    #        description="Move the view to frame the selected objects",
-    #        default=True)
 
     @classmethod
     def poll(cls, context):
         return bpy.ops.view3d.localview.poll()
 
     def execute(self, context):
+        prefs = get_addon_prefs()
         in_localview = context.space_data.local_view is not None
         shading_type = context.space_data.shading.type
         if (in_localview and
                 shading_type in {'MATERIAL', 'RENDERED'}):
-            self.report({"INFO"}, "Viewport Shading changed to Wireframe")
-            context.space_data.shading.type = 'WIREFRAME'
+            t = prefs.preferred_shading_type
+            context.space_data.shading.type = t
+            msg = f"Viewport Shading changed to {shading_types[t]}"
+            self.report({"INFO"}, msg)
 
-        prefs = get_addon_prefs()
         return bpy.ops.view3d.localview(frame_selected=prefs.frame_selected)
 
 
@@ -71,6 +74,13 @@ def auto_rebind(self, context):
 
 class SafeLocalviewPreferences(bpy.types.AddonPreferences):
     bl_idname = __name__
+
+    items = (
+            ("WIREFRAME", "Wireframe", ""),
+            ("SOLID",     "Solid",     ""))
+    preferred_shading_type: bpy.props.EnumProperty(
+            name="Preferred Shading Type",
+            items=items)
 
     frame_selected: bpy.props.BoolProperty(
             name="Frame Selected",
@@ -84,8 +94,10 @@ class SafeLocalviewPreferences(bpy.types.AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "frame_selected")
-        layout.prop(self, "use_shortcut")
+        row = layout.row()
+        row.prop(self, "preferred_shading_type")
+        row.prop(self, "frame_selected")
+        row.prop(self, "use_shortcut")
 
 
 addon_keymaps = []
