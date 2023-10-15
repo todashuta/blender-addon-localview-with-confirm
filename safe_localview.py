@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Safe Localview",
     "author": "todashuta",
-    "version": (0, 0, 2),
+    "version": (0, 0, 3),
     "blender": (3, 6, 0),
     "location": "-",
     "description": "-",
@@ -32,6 +32,11 @@ bl_info = {
 
 
 import bpy
+
+
+def get_addon_prefs():
+    addon_prefs = bpy.context.preferences.addons[__name__].preferences
+    return addon_prefs
 
 
 class SafeLocalviewOperator(bpy.types.Operator):
@@ -48,16 +53,15 @@ class SafeLocalviewOperator(bpy.types.Operator):
         return bpy.ops.view3d.localview.poll()
 
     def execute(self, context):
-        in_localview = context.space_data.local_view
+        in_localview = context.space_data.local_view is not None
         shading_type = context.space_data.shading.type
         if (in_localview and
                 shading_type in {'MATERIAL', 'RENDERED'}):
             self.report({"INFO"}, "Viewport Shading changed to Wireframe")
             context.space_data.shading.type = 'WIREFRAME'
 
-        frame_selected = context.preferences.addons[__name__].preferences.frame_selected
-
-        return bpy.ops.view3d.localview(frame_selected=frame_selected)
+        prefs = get_addon_prefs()
+        return bpy.ops.view3d.localview(frame_selected=prefs.frame_selected)
 
 
 def auto_rebind(self, context):
@@ -86,8 +90,8 @@ class SafeLocalviewPreferences(bpy.types.AddonPreferences):
 
 addon_keymaps = []
 def register_keymaps():
-    pref = bpy.context.preferences.addons[__name__].preferences
-    if not pref.use_shortcut:
+    prefs = get_addon_prefs()
+    if not prefs.use_shortcut:
         return
 
     kc = bpy.context.window_manager.keyconfigs.addon
