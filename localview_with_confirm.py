@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Local View with Confirm",
     "author": "todashuta",
-    "version": (0, 0, 5),
+    "version": (0, 1, 0),
     "blender": (3, 6, 0),
     "location": "-",
     "description": "-",
