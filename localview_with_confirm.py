@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Local View with Confirm",
     "author": "todashuta",
-    "version": (0, 1, 0),
+    "version": (0, 1, 1),
     "blender": (3, 6, 0),
     "location": "-",
     "description": "-",
@@ -62,7 +62,10 @@ class LocalviewWithConfirmOperator(bpy.types.Operator):
         }[context.scene.LocalViewWithConfirmAddon_modes]
         if shading_type in modes:
             wm = context.window_manager
-            return wm.invoke_confirm(self, event)
+            if bpy.app.version > (4, 2):
+                return wm.invoke_confirm(self, event, title="", message="Do you want to exit Local View?")
+            else:
+                return wm.invoke_confirm(self, event)
         return self.execute(context)
 
 
