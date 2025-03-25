@@ -1,1 +1,1 @@
-# blender-addon-safe-localview
+# blender-addon-localview-with-confirm
