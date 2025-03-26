@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Local View with Confirm",
     "author": "todashuta",
-    "version": (0, 1, 3),
+    "version": (0, 1, 4),
     "blender": (3, 6, 0),
     "location": "-",
     "description": "-",
@@ -43,13 +43,17 @@ class LocalviewWithConfirmOperator(bpy.types.Operator):
     bl_idname = "view3d.localview_with_confirm"
     bl_label = "Local View with Confirm"
 
+    frame_selected: bpy.props.BoolProperty(
+            name="Frame Selected",
+            description="Move the view to frame the selected objects",
+            default=True)
+
     @classmethod
     def poll(cls, context):
         return bpy.ops.view3d.localview.poll()
 
     def execute(self, context):
-        prefs = get_addon_prefs(context)
-        return bpy.ops.view3d.localview(frame_selected=prefs.frame_selected)
+        return bpy.ops.view3d.localview(frame_selected=self.frame_selected)
 
     def invoke(self, context, event):
         if context.space_data.local_view is None:
@@ -80,7 +84,8 @@ class LocalviewWithConfirmPreferences(bpy.types.AddonPreferences):
     frame_selected: bpy.props.BoolProperty(
             name="Frame Selected",
             description="Move the view to frame the selected objects",
-            default=True)
+            default=True,
+            update=auto_rebind)
 
     use_shortcut: bpy.props.BoolProperty(
             name="Use Default Shortcut",
@@ -90,8 +95,10 @@ class LocalviewWithConfirmPreferences(bpy.types.AddonPreferences):
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        row.prop(self, "frame_selected")
         row.prop(self, "use_shortcut")
+        inner_row = row.row()
+        inner_row.active = self.use_shortcut
+        inner_row.prop(self, "frame_selected")
 
 
 addon_keymaps = []
@@ -106,10 +113,12 @@ def register_keymaps():
 
     km = kc.keymaps.new(name="3D View", space_type="VIEW_3D")
     kmi = km.keymap_items.new(LocalviewWithConfirmOperator.bl_idname, "SLASH", "PRESS")
+    kmi.properties.frame_selected = prefs.frame_selected
     addon_keymaps.append((km, kmi))
 
     km = kc.keymaps.new(name="3D View", space_type="VIEW_3D")
     kmi = km.keymap_items.new(LocalviewWithConfirmOperator.bl_idname, "NUMPAD_SLASH", "PRESS")
+    kmi.properties.frame_selected = prefs.frame_selected
     addon_keymaps.append((km, kmi))
 
 def unregister_keymaps():
