@@ -20,10 +20,10 @@
 bl_info = {
     "name": "Local View with Confirm",
     "author": "todashuta",
-    "version": (0, 2, 0),
+    "version": (0, 2, 1),
     "blender": (3, 6, 0),
-    "location": "-",
-    "description": "-",
+    "location": "3D Viewport > View Menu > Local View > Enter Local View / Exit Local View",
+    "description": "Confirm upon exit Local View",
     "warning": "",
     "wiki_url": "",
     "tracker_url": "",
@@ -57,20 +57,79 @@ class LocalviewWithConfirmOperator(bpy.types.Operator):
 
     def invoke(self, context, event):
         if context.space_data.local_view is None:
-            return self.execute(context)
+            return self.execute(context) # enter Local View
         shading_type = context.space_data.shading.type
-        modes = {
-                "SOLID":    {"SOLID", "MATERIAL", "RENDERED"},
-                "MATERIAL": {         "MATERIAL", "RENDERED"},
-                "RENDERED": {                     "RENDERED"},
-        }[context.scene.LocalViewWithConfirmAddon_modes]
-        if shading_type in modes:
+        scnene_props = context.scene.LocalViewWithConfirmAddonProps
+        confirm = False
+        match shading_type:
+            case "WIREFRAME" if scnene_props.confirm_wireframe:
+                confirm = True
+            case "SOLID"     if scnene_props.confirm_solid:
+                confirm = True
+            case "MATERIAL"  if scnene_props.confirm_material:
+                confirm = True
+            case "RENDERED"  if scnene_props.confirm_rendered:
+                confirm = True
+        if confirm:
             wm = context.window_manager
             if bpy.app.version >= (4, 2, 0):
-                return wm.invoke_confirm(self, event, icon="QUESTION", title="", message="Do you want to exit Local View?")
+                return wm.invoke_confirm(self, event, icon="QUESTION", title="",
+                                         message="Do you want to exit Local View?")
             else:
                 return wm.invoke_confirm(self, event)
-        return self.execute(context)
+        return self.execute(context) # exit Local View without confirm
+
+
+def set_confirm_wireframe(self, value):
+    oldval = self.get("confirm_wireframe", False)
+    self["confirm_wireframe"] = value
+    #print(self, oldval, value)
+    scnene_props = bpy.context.scene.LocalViewWithConfirmAddonProps
+    if (oldval, value) == (False, True):
+        scnene_props.confirm_solid = True
+    if (oldval, value) == (True, False):
+        pass # do nothing
+def set_confirm_solid(self, value):
+    oldval = self.get("confirm_solid", False)
+    self["confirm_solid"] = value
+    #print(self, oldval, value)
+    scnene_props = bpy.context.scene.LocalViewWithConfirmAddonProps
+    if (oldval, value) == (False, True):
+        scnene_props.confirm_material = True
+    if (oldval, value) == (True, False):
+        scnene_props.confirm_wireframe = False
+def set_confirm_material(self, value):
+    oldval = self.get("confirm_material", True)
+    self["confirm_material"] = value
+    #print(self, oldval, value)
+    scnene_props = bpy.context.scene.LocalViewWithConfirmAddonProps
+    if (oldval, value) == (False, True):
+        scnene_props.confirm_rendered = True
+    if (oldval, value) == (True, False):
+        scnene_props.confirm_solid = False
+def set_confirm_rendered(self, value):
+    oldval = self.get("confirm_rendered", True)
+    self["confirm_rendered"] = value
+    #print(self, oldval, value)
+    scnene_props = bpy.context.scene.LocalViewWithConfirmAddonProps
+    if (oldval, value) == (False, True):
+        pass # do nothing
+    if (oldval, value) == (True, False):
+        scnene_props.confirm_material = False
+
+class LocalviewWithConfirmProps(bpy.types.PropertyGroup):
+    confirm_wireframe: bpy.props.BoolProperty(name="Confirm upon exit Local View",
+                                              set=set_confirm_wireframe,
+                                              get=lambda self: self.get("confirm_wireframe", False))
+    confirm_solid:     bpy.props.BoolProperty(name="Confirm upon exit Local View",
+                                              set=set_confirm_solid,
+                                              get=lambda self: self.get("confirm_solid",     False))
+    confirm_material:  bpy.props.BoolProperty(name="Confirm upon exit Local View",
+                                              set=set_confirm_material,
+                                              get=lambda self: self.get("confirm_material",  True))
+    confirm_rendered:  bpy.props.BoolProperty(name="Confirm upon exit Local View",
+                                              set=set_confirm_rendered,
+                                              get=lambda self: self.get("confirm_rendered",  True))
 
 
 def auto_rebind(self, context):
@@ -130,27 +189,41 @@ def unregister_keymaps():
 classes = (
         LocalviewWithConfirmPreferences,
         LocalviewWithConfirmOperator,
+        LocalviewWithConfirmProps,
 )
 
 
-def menu_func(self, context):
+def shading_menu_func(self, context):
     layout = self.layout
-    layout.prop(context.scene, "LocalViewWithConfirmAddon_modes")
+    shading_type = context.space_data.shading.type
+    scnene_props = context.scene.LocalViewWithConfirmAddonProps
+    match shading_type:
+        case "WIREFRAME":
+            layout.prop(scnene_props, "confirm_wireframe")
+        case "SOLID":
+            layout.prop(scnene_props, "confirm_solid")
+        case "MATERIAL":
+            layout.prop(scnene_props, "confirm_material")
+        case "RENDERED":
+            layout.prop(scnene_props, "confirm_rendered")
+
+
+def view_local_menu_func(self, context):
+    layout = self.layout
+    layout.separator()
+    op = layout.operator(LocalviewWithConfirmOperator.bl_idname,
+                    text="Exit Local View" if context.space_data.local_view else "Enter Local View")
+    prefs = get_addon_prefs(context)
+    op.frame_selected = prefs.frame_selected
 
 
 def register():
-    bpy.types.Scene.LocalViewWithConfirmAddon_modes = bpy.props.EnumProperty(
-            name="LVWC Modes",
-            description="Local View with Confirm Modes",
-            default="MATERIAL",
-            items=[("SOLID",    "Solid / Material Preview / Rendered", ""),
-                   ("MATERIAL", "Material Preview / Rendered",         ""),
-                   ("RENDERED", "Rendered",                            "")])
-
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.VIEW3D_PT_shading.append(menu_func)
+    bpy.types.Scene.LocalViewWithConfirmAddonProps = bpy.props.PointerProperty(type=LocalviewWithConfirmProps)
+    bpy.types.VIEW3D_PT_shading.append(shading_menu_func)
+    bpy.types.VIEW3D_MT_view_local.append(view_local_menu_func)
 
     register_keymaps()
 
@@ -158,13 +231,13 @@ def register():
 def unregister():
     unregister_keymaps()
 
-    bpy.types.VIEW3D_PT_shading.remove(menu_func)
+    bpy.types.VIEW3D_MT_view_local.remove(view_local_menu_func)
+    bpy.types.VIEW3D_PT_shading.remove(shading_menu_func)
+    if hasattr(bpy.types.Scene, "LocalViewWithConfirmAddonProps"):
+        del bpy.types.Scene.LocalViewWithConfirmAddonProps
 
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
-
-    if hasattr(bpy.types.Scene, "LocalViewWithConfirmAddon_modes"):
-        del bpy.types.Scene.LocalViewWithConfirmAddon_modes
 
 
 if __name__ == "__main__":
