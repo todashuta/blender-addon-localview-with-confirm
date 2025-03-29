@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Local View with Confirm",
     "author": "todashuta",
-    "version": (0, 2, 5),
+    "version": (0, 2, 6),
     "blender": (3, 6, 0),
     "location": "3D Viewport > View Menu > Local View > Enter Local View / Exit Local View",
     "description": "Confirm upon exit Local View",
@@ -131,18 +131,26 @@ def set_confirm_rendered(self, new_value):
             self.confirm_material = False
 
 class LocalviewWithConfirmProps(bpy.types.PropertyGroup):
-    confirm_wireframe: bpy.props.BoolProperty(name="Confirm upon exit Local View",
-                                              set=set_confirm_wireframe,
-                                              get=lambda self: self.get("confirm_wireframe", False))
-    confirm_solid:     bpy.props.BoolProperty(name="Confirm upon exit Local View",
-                                              set=set_confirm_solid,
-                                              get=lambda self: self.get("confirm_solid",     False))
-    confirm_material:  bpy.props.BoolProperty(name="Confirm upon exit Local View",
-                                              set=set_confirm_material,
-                                              get=lambda self: self.get("confirm_material",  True))
-    confirm_rendered:  bpy.props.BoolProperty(name="Confirm upon exit Local View",
-                                              set=set_confirm_rendered,
-                                              get=lambda self: self.get("confirm_rendered",  True))
+    confirm_wireframe: bpy.props.BoolProperty(
+            name="Confirm upon exit Local View",
+            set=set_confirm_wireframe,
+            get=lambda self: self.get("confirm_wireframe", False) # default value
+            )
+    confirm_solid: bpy.props.BoolProperty(
+            name="Confirm upon exit Local View",
+            set=set_confirm_solid,
+            get=lambda self: self.get("confirm_solid", False) # default value
+            )
+    confirm_material: bpy.props.BoolProperty(
+            name="Confirm upon exit Local View",
+            set=set_confirm_material,
+            get=lambda self: self.get("confirm_material", True) # default value
+            )
+    confirm_rendered: bpy.props.BoolProperty(
+            name="Confirm upon exit Local View",
+            set=set_confirm_rendered,
+            get=lambda self: self.get("confirm_rendered", True) # default value
+            )
 
 
 def auto_rebind(self, context):
