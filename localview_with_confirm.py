@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Local View with Confirm",
     "author": "todashuta",
-    "version": (0, 2, 4),
+    "version": (0, 2, 5),
     "blender": (3, 6, 0),
     "location": "3D Viewport > View Menu > Local View > Enter Local View / Exit Local View",
     "description": "Confirm upon exit Local View",
@@ -32,6 +32,11 @@ bl_info = {
 
 
 import bpy
+
+
+def log(msg):
+    from datetime import datetime
+    print(datetime.now(), msg)
 
 
 def get_addon_prefs(context):
@@ -85,7 +90,7 @@ def set_confirm_wireframe(self, new_value):
     if current_value == new_value:
         return # do nothing
     self["confirm_wireframe"] = new_value
-    #print(self, current_value, new_value)
+    #log(f"{self} set_confirm_wireframe {current_value} {new_value}")
     match new_value:
         case True:
             self.confirm_solid = True
@@ -96,7 +101,7 @@ def set_confirm_solid(self, new_value):
     if current_value == new_value:
         return # do nothing
     self["confirm_solid"] = new_value
-    #print(self, current_value, new_value)
+    #log(f"{self} set_confirm_solid {current_value} {new_value}")
     match new_value:
         case True:
             self.confirm_material = True
@@ -107,7 +112,7 @@ def set_confirm_material(self, new_value):
     if current_value == new_value:
         return # do nothing
     self["confirm_material"] = new_value
-    #print(self, current_value, new_value)
+    #log(f"{self} set_confirm_material {current_value} {new_value}")
     match new_value:
         case True:
             self.confirm_rendered = True
@@ -118,7 +123,7 @@ def set_confirm_rendered(self, new_value):
     if current_value == new_value:
         return # do nothing
     self["confirm_rendered"] = new_value
-    #print(self, current_value, new_value)
+    #log(f"{self} set_confirm_rendered {current_value} {new_value}")
     match new_value:
         case True:
             pass # do nothing
