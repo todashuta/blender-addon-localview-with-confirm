@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Local View with Confirm",
     "author": "todashuta",
-    "version": (0, 2, 3),
+    "version": (0, 2, 4),
     "blender": (3, 6, 0),
     "location": "3D Viewport > View Menu > Local View > Enter Local View / Exit Local View",
     "description": "Confirm upon exit Local View",
@@ -81,44 +81,44 @@ class LocalviewWithConfirmOperator(bpy.types.Operator):
 
 
 def set_confirm_wireframe(self, new_value):
-    old_value = self.confirm_wireframe
-    if old_value == new_value:
+    current_value = self.confirm_wireframe
+    if current_value == new_value:
         return # do nothing
     self["confirm_wireframe"] = new_value
-    #print(self, old_value, new_value)
+    #print(self, current_value, new_value)
     match new_value:
         case True:
             self.confirm_solid = True
         case False:
             pass # do nothing
 def set_confirm_solid(self, new_value):
-    old_value = self.confirm_solid
-    if old_value == new_value:
+    current_value = self.confirm_solid
+    if current_value == new_value:
         return # do nothing
     self["confirm_solid"] = new_value
-    #print(self, old_value, new_value)
+    #print(self, current_value, new_value)
     match new_value:
         case True:
             self.confirm_material = True
         case False:
             self.confirm_wireframe = False
 def set_confirm_material(self, new_value):
-    old_value = self.confirm_material
-    if old_value == new_value:
+    current_value = self.confirm_material
+    if current_value == new_value:
         return # do nothing
     self["confirm_material"] = new_value
-    #print(self, old_value, new_value)
+    #print(self, current_value, new_value)
     match new_value:
         case True:
             self.confirm_rendered = True
         case False:
             self.confirm_solid = False
 def set_confirm_rendered(self, new_value):
-    old_value = self.confirm_rendered
-    if old_value == new_value:
+    current_value = self.confirm_rendered
+    if current_value == new_value:
         return # do nothing
     self["confirm_rendered"] = new_value
-    #print(self, old_value, new_value)
+    #print(self, current_value, new_value)
     match new_value:
         case True:
             pass # do nothing
