@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Local View with Confirm",
     "author": "todashuta",
-    "version": (0, 2, 6),
+    "version": (0, 3, 0),
     "blender": (3, 6, 0),
     "location": "3D Viewport > View Menu > Local View > Enter Local View / Exit Local View",
     "description": "Confirm upon exit Local View",
