@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Local View with Confirm",
     "author": "todashuta",
-    "version": (0, 2, 2),
+    "version": (0, 2, 3),
     "blender": (3, 6, 0),
     "location": "3D Viewport > View Menu > Local View > Enter Local View / Exit Local View",
     "description": "Confirm upon exit Local View",
@@ -80,38 +80,50 @@ class LocalviewWithConfirmOperator(bpy.types.Operator):
         return self.execute(context) # exit Local View without confirm
 
 
-def set_confirm_wireframe(self, value):
-    oldval = self.confirm_wireframe
-    self["confirm_wireframe"] = value
-    #print(self, oldval, value)
-    if (oldval, value) == (False, True):
-        self.confirm_solid = True
-    if (oldval, value) == (True, False):
-        pass # do nothing
-def set_confirm_solid(self, value):
-    oldval = self.confirm_solid
-    self["confirm_solid"] = value
-    #print(self, oldval, value)
-    if (oldval, value) == (False, True):
-        self.confirm_material = True
-    if (oldval, value) == (True, False):
-        self.confirm_wireframe = False
-def set_confirm_material(self, value):
-    oldval = self.confirm_material
-    self["confirm_material"] = value
-    #print(self, oldval, value)
-    if (oldval, value) == (False, True):
-        self.confirm_rendered = True
-    if (oldval, value) == (True, False):
-        self.confirm_solid = False
-def set_confirm_rendered(self, value):
-    oldval = self.confirm_rendered
-    self["confirm_rendered"] = value
-    #print(self, oldval, value)
-    if (oldval, value) == (False, True):
-        pass # do nothing
-    if (oldval, value) == (True, False):
-        self.confirm_material = False
+def set_confirm_wireframe(self, new_value):
+    old_value = self.confirm_wireframe
+    if old_value == new_value:
+        return # do nothing
+    self["confirm_wireframe"] = new_value
+    #print(self, old_value, new_value)
+    match new_value:
+        case True:
+            self.confirm_solid = True
+        case False:
+            pass # do nothing
+def set_confirm_solid(self, new_value):
+    old_value = self.confirm_solid
+    if old_value == new_value:
+        return # do nothing
+    self["confirm_solid"] = new_value
+    #print(self, old_value, new_value)
+    match new_value:
+        case True:
+            self.confirm_material = True
+        case False:
+            self.confirm_wireframe = False
+def set_confirm_material(self, new_value):
+    old_value = self.confirm_material
+    if old_value == new_value:
+        return # do nothing
+    self["confirm_material"] = new_value
+    #print(self, old_value, new_value)
+    match new_value:
+        case True:
+            self.confirm_rendered = True
+        case False:
+            self.confirm_solid = False
+def set_confirm_rendered(self, new_value):
+    old_value = self.confirm_rendered
+    if old_value == new_value:
+        return # do nothing
+    self["confirm_rendered"] = new_value
+    #print(self, old_value, new_value)
+    match new_value:
+        case True:
+            pass # do nothing
+        case False:
+            self.confirm_material = False
 
 class LocalviewWithConfirmProps(bpy.types.PropertyGroup):
     confirm_wireframe: bpy.props.BoolProperty(name="Confirm upon exit Local View",
@@ -204,6 +216,7 @@ def shading_menu_func(self, context):
             layout.prop(scnene_props, "confirm_rendered")
 
     #layout.separator()
+    #layout.label(text=f"{bl_info['name']} {bl_info['version']}")
     #layout.prop(scnene_props, "confirm_wireframe")
     #layout.prop(scnene_props, "confirm_solid")
     #layout.prop(scnene_props, "confirm_material")
