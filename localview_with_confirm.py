@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Local View with Confirm",
     "author": "todashuta",
-    "version": (0, 3, 0),
+    "version": (0, 3, 1),
     "blender": (3, 6, 0),
     "location": "3D Viewport > View Menu > Local View > Enter Local View / Exit Local View",
     "description": "Confirm upon exit Local View",
@@ -40,7 +40,8 @@ def log(msg):
 
 
 def get_addon_prefs(context):
-    addon_prefs = context.preferences.addons[__name__].preferences
+    name = __package__ if __package__ else __name__
+    addon_prefs = context.preferences.addons[name].preferences
     return addon_prefs
 
 
@@ -159,7 +160,7 @@ def auto_rebind(self, context):
 
 
 class LocalviewWithConfirmPreferences(bpy.types.AddonPreferences):
-    bl_idname = __name__
+    bl_idname = __package__ if __package__ else __name__
 
     frame_selected: bpy.props.BoolProperty(
             name="Frame Selected",
